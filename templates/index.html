@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eBay Sales Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    :root {
+      --ebay-blue: #0064d2;
+      --ebay-red: #e53238;
+      --ebay-yellow: #f5af02;
+      --ebay-green: #86b817;
+    }
+    body { background: #f4f6f9; font-size: 0.9rem; }
+    .navbar { background: var(--ebay-blue) !important; }
+    .navbar-brand { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.5px; }
+    .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,.1); border-radius: 10px; }
+    .card-header { background: #fff; border-bottom: 2px solid #f0f0f0; font-weight: 600; border-radius: 10px 10px 0 0 !important; }
+    .stat-card { border-radius: 10px; color: #fff; }
+    .stat-card.blue { background: var(--ebay-blue); }
+    .stat-card.green { background: var(--ebay-green); }
+    .stat-card.red { background: var(--ebay-red); }
+    .stat-card.yellow { background: #d4940a; }
+    .stat-card .value { font-size: 1.75rem; font-weight: 700; }
+    .stat-card .label { font-size: 0.78rem; opacity: .85; }
+    .table th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: .5px; color: #666; background: #fafafa; }
+    .table td { vertical-align: middle; }
+    .item-title { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge-saved { font-size: 0.7rem; }
+    .status-toggle { cursor: pointer; font-size: 1.2rem; transition: transform .1s; }
+    .status-toggle:hover { transform: scale(1.2); }
+    .notes-input { border: none; background: transparent; width: 100%; font-size: 0.82rem; color: #555; }
+    .notes-input:focus { outline: 1px dashed #ccc; background: #fffef0; border-radius: 4px; }
+    .search-results-header { background: var(--ebay-blue); color: #fff; border-radius: 10px 10px 0 0 !important; }
+    #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; }
+    .spinner-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,.6); z-index: 1000; align-items: center; justify-content: center; }
+    .spinner-overlay.active { display: flex; }
+    .table-hover tbody tr:hover { background: #f0f5ff; }
+    .delete-btn { opacity: 0.4; transition: opacity .15s; }
+    tr:hover .delete-btn { opacity: 1; }
+    #no-results { display: none; }
+    #no-saved { display: none; }
+    .filter-bar { background: #fff; border-radius: 8px; padding: .5rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  </style>
+</head>
+<body>
+
+<!-- Spinner -->
+<div class="spinner-overlay" id="spinner">
+  <div class="text-center">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+    <div class="mt-2 fw-semibold text-primary" id="spinner-msg">Fetching items...</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark py-2">
+  <div class="container-fluid">
+    <span class="navbar-brand">
+      <i class="bi bi-shop me-2"></i>eBay Sales Tracker
+    </span>
+    <span class="text-white-50 small">Track your sold listings</span>
+  </div>
+</nav>
+
+<div class="container-fluid py-3 px-3 px-md-4">
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-3" id="stats-row">
+    <div class="col-6 col-md-3">
+      <div class="stat-card blue p-3 rounded-3">
+        <div class="value" id="stat-total">–</div>
+        <div class="label">Total Items Saved</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card green p-3 rounded-3">
+        <div class="value" id="stat-revenue">–</div>
+        <div class="label">Total Revenue</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card red p-3 rounded-3">
+        <div class="value" id="stat-payment-pending">–</div>
+        <div class="label">Payment Pending</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card yellow p-3 rounded-3">
+        <div class="value" id="stat-items-pending">–</div>
+        <div class="label">Shipment Pending</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Left: Search Panel -->
+    <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header py-2">
+          <i class="bi bi-search me-2 text-primary"></i>Search Sold Items
+        </div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label fw-semibold mb-1">eBay Seller Username</label>
+            <input type="text" id="seller-input" class="form-control form-control-sm" placeholder="e.g. techseller123" />
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold mb-1">Date From</label>
+            <input type="date" id="date-from" class="form-control form-control-sm" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold mb-1">Date To</label>
+            <input type="date" id="date-to" class="form-control form-control-sm" />
+          </div>
+          <button class="btn btn-primary btn-sm w-100" onclick="searchItems()">
+            <i class="bi bi-search me-1"></i>Fetch Sold Items
+          </button>
+          <div class="mt-2 text-muted small text-center">
+            <i class="bi bi-info-circle me-1"></i>Leave dates blank to fetch all
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick date shortcuts -->
+      <div class="card">
+        <div class="card-header py-2">
+          <i class="bi bi-calendar3 me-2 text-secondary"></i>Quick Date Ranges
+        </div>
+        <div class="card-body py-2">
+          <div class="d-grid gap-1">
+            <button class="btn btn-outline-secondary btn-sm" onclick="setDateRange(7)">Last 7 Days</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setDateRange(30)">Last 30 Days</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setDateRange(90)">Last 90 Days</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setCurrentMonth()">This Month</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setLastMonth()">Last Month</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Results + Saved -->
+    <div class="col-lg-8">
+
+      <!-- Search Results -->
+      <div class="card mb-3" id="results-card" style="display:none !important;">
+        <div class="card-header search-results-header d-flex align-items-center justify-content-between py-2">
+          <span><i class="bi bi-list-check me-2"></i>Search Results <span id="results-count" class="badge bg-white text-primary ms-1">0</span></span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-light" onclick="selectAll(true)">Select All</button>
+            <button class="btn btn-sm btn-outline-light" onclick="selectAll(false)">None</button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div id="no-results" class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>No sold items found for this seller and date range.
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0" id="results-table">
+              <thead>
+                <tr>
+                  <th class="ps-3" style="width:36px;"><input type="checkbox" id="select-all-cb" onchange="selectAll(this.checked)" /></th>
+                  <th>Item</th>
+                  <th>Price</th>
+                  <th>Date Sold</th>
+                  <th>Link</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer d-flex align-items-center justify-content-between bg-white py-2">
+          <span class="text-muted small"><span id="selected-count">0</span> selected</span>
+          <button class="btn btn-success btn-sm" onclick="saveSelected()">
+            <i class="bi bi-cloud-download me-1"></i>Save Selected to Database
+          </button>
+        </div>
+      </div>
+
+      <!-- Saved Items -->
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
+          <span><i class="bi bi-database me-2 text-success"></i>Saved Items <span id="saved-count" class="badge bg-success ms-1">0</span></span>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="text" id="filter-input" class="form-control form-control-sm" style="width:160px;" placeholder="Filter by title..." oninput="filterSaved()" />
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadSaved()" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div id="no-saved" class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>No items saved yet. Search and save items to track them.
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0" id="saved-table">
+              <thead>
+                <tr>
+                  <th class="ps-3">Item</th>
+                  <th>Price</th>
+                  <th>Date Sold</th>
+                  <th class="text-center">
+                    <i class="bi bi-credit-card me-1"></i>Payment
+                  </th>
+                  <th class="text-center">
+                    <i class="bi bi-box-seam me-1"></i>Received
+                  </th>
+                  <th>Notes</th>
+                  <th>Link</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="saved-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script>
+  let searchResults = [];
+  let savedItems = [];
+
+  // ── Utilities ─────────────────────────────────────────────────────────────
+
+  function showSpinner(msg = 'Loading...') {
+    document.getElementById('spinner-msg').textContent = msg;
+    document.getElementById('spinner').classList.add('active');
+  }
+  function hideSpinner() {
+    document.getElementById('spinner').classList.remove('active');
+  }
+
+  function toast(msg, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `alert alert-${type} alert-dismissible shadow-sm mb-2 py-2 px-3`;
+    el.innerHTML = `${msg} <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  function fmt(price, currency = 'USD') {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(price);
+  }
+
+  function fmtDate(isoStr) {
+    if (!isoStr) return '–';
+    const d = new Date(isoStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Date shortcuts ─────────────────────────────────────────────────────────
+
+  function setDateRange(days) {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    document.getElementById('date-from').value = from.toISOString().split('T')[0];
+    document.getElementById('date-to').value = to.toISOString().split('T')[0];
+  }
+
+  function setCurrentMonth() {
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    document.getElementById('date-from').value = from.toISOString().split('T')[0];
+    document.getElementById('date-to').value = now.toISOString().split('T')[0];
+  }
+
+  function setLastMonth() {
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const to = new Date(now.getFullYear(), now.getMonth(), 0);
+    document.getElementById('date-from').value = from.toISOString().split('T')[0];
+    document.getElementById('date-to').value = to.toISOString().split('T')[0];
+  }
+
+  // ── Search ─────────────────────────────────────────────────────────────────
+
+  async function searchItems() {
+    const seller = document.getElementById('seller-input').value.trim();
+    const date_from = document.getElementById('date-from').value;
+    const date_to = document.getElementById('date-to').value;
+
+    if (!seller) { toast('Please enter a seller username.', 'warning'); return; }
+
+    showSpinner('Fetching sold items from eBay...');
+    try {
+      const resp = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seller, date_from, date_to })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Search failed');
+
+      searchResults = data.items || [];
+      renderResults();
+      document.getElementById('results-card').style.setProperty('display', 'block', 'important');
+      toast(`Found ${searchResults.length} sold items.`, searchResults.length ? 'success' : 'info');
+    } catch (e) {
+      toast(`<i class="bi bi-exclamation-triangle me-1"></i>${e.message}`, 'danger');
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  function renderResults() {
+    const tbody = document.getElementById('results-body');
+    document.getElementById('results-count').textContent = searchResults.length;
+    document.getElementById('no-results').style.display = searchResults.length ? 'none' : 'block';
+
+    tbody.innerHTML = searchResults.map((item, i) => `
+      <tr>
+        <td class="ps-3">
+          <input type="checkbox" class="result-cb" data-idx="${i}" onchange="updateSelectedCount()"
+            ${item.already_saved ? 'disabled checked' : ''} />
+        </td>
+        <td>
+          <div class="item-title" title="${escHtml(item.title)}">${escHtml(item.title)}</div>
+          ${item.condition ? `<small class="text-muted">${escHtml(item.condition)}</small>` : ''}
+        </td>
+        <td class="fw-semibold text-success">${fmt(item.sold_price, item.currency)}</td>
+        <td class="text-nowrap">${fmtDate(item.sold_date)}</td>
+        <td>
+          <a href="${escHtml(item.ebay_link)}" target="_blank" class="btn btn-outline-secondary btn-sm py-0 px-1">
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </td>
+        <td>
+          ${item.already_saved
+            ? '<span class="badge bg-success badge-saved">Saved</span>'
+            : '<span class="badge bg-secondary badge-saved">New</span>'}
+        </td>
+      </tr>
+    `).join('');
+
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('.result-cb:not([disabled]):checked').length;
+    document.getElementById('selected-count').textContent = checked;
+  }
+
+  function selectAll(checked) {
+    document.querySelectorAll('.result-cb:not([disabled])').forEach(cb => cb.checked = checked);
+    if (document.getElementById('select-all-cb')) document.getElementById('select-all-cb').checked = checked;
+    updateSelectedCount();
+  }
+
+  async function saveSelected() {
+    const cbs = document.querySelectorAll('.result-cb:not([disabled]):checked');
+    if (!cbs.length) { toast('Select at least one item to save.', 'warning'); return; }
+
+    const toSave = Array.from(cbs).map(cb => searchResults[parseInt(cb.dataset.idx)]);
+    showSpinner('Saving items...');
+    try {
+      const resp = await fetch('/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: toSave })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Save failed');
+
+      toast(`Saved ${data.saved} item(s). ${data.skipped ? data.skipped + ' already existed.' : ''}`, 'success');
+      // Mark newly saved items
+      cbs.forEach(cb => {
+        const idx = parseInt(cb.dataset.idx);
+        searchResults[idx].already_saved = true;
+        cb.disabled = true;
+        cb.checked = true;
+      });
+      renderResults();
+      await loadSaved();
+      await loadStats();
+    } catch (e) {
+      toast(`<i class="bi bi-exclamation-triangle me-1"></i>${e.message}`, 'danger');
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  // ── Saved Items ────────────────────────────────────────────────────────────
+
+  async function loadSaved() {
+    try {
+      const resp = await fetch('/api/items');
+      const data = await resp.json();
+      savedItems = data.items || [];
+      renderSaved();
+    } catch (e) {
+      toast('Failed to load saved items.', 'danger');
+    }
+  }
+
+  function filterSaved() {
+    renderSaved();
+  }
+
+  function renderSaved() {
+    const filter = document.getElementById('filter-input').value.toLowerCase();
+    const filtered = filter
+      ? savedItems.filter(i => i.title.toLowerCase().includes(filter))
+      : savedItems;
+
+    const tbody = document.getElementById('saved-body');
+    document.getElementById('saved-count').textContent = savedItems.length;
+    document.getElementById('no-saved').style.display = savedItems.length ? 'none' : 'block';
+    document.getElementById('saved-table').style.display = savedItems.length ? '' : 'none';
+
+    tbody.innerHTML = filtered.map(item => `
+      <tr id="row-${item.id}">
+        <td class="ps-3">
+          <div class="item-title" title="${escHtml(item.title)}">${escHtml(item.title)}</div>
+          <small class="text-muted">${escHtml(item.seller || '')}${item.condition ? ' · ' + escHtml(item.condition) : ''}</small>
+        </td>
+        <td class="fw-semibold text-success text-nowrap">${fmt(item.sold_price, item.currency)}</td>
+        <td class="text-nowrap">${fmtDate(item.sold_date)}</td>
+        <td class="text-center">
+          <span class="status-toggle"
+            onclick="toggleStatus(${item.id}, 'payment_received', ${!item.payment_received})"
+            title="${item.payment_received ? 'Payment received – click to mark unpaid' : 'Payment not received – click to mark paid'}">
+            ${item.payment_received
+              ? '<i class="bi bi-check-circle-fill text-success"></i>'
+              : '<i class="bi bi-x-circle-fill text-danger"></i>'}
+          </span>
+        </td>
+        <td class="text-center">
+          <span class="status-toggle"
+            onclick="toggleStatus(${item.id}, 'item_received', ${!item.item_received})"
+            title="${item.item_received ? 'Item received – click to mark pending' : 'Item not received – click to mark received'}">
+            ${item.item_received
+              ? '<i class="bi bi-check-circle-fill text-success"></i>'
+              : '<i class="bi bi-x-circle-fill text-danger"></i>'}
+          </span>
+        </td>
+        <td>
+          <input type="text" class="notes-input" value="${escHtml(item.notes || '')}"
+            placeholder="Add notes..."
+            onblur="saveNotes(${item.id}, this.value)"
+            onkeydown="if(event.key==='Enter'){this.blur();}" />
+        </td>
+        <td>
+          <a href="${escHtml(item.ebay_link)}" target="_blank" class="btn btn-outline-secondary btn-sm py-0 px-1">
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline-danger delete-btn py-0 px-1"
+            onclick="deleteItem(${item.id})" title="Remove from database">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function toggleStatus(id, field, value) {
+    try {
+      const resp = await fetch(`/api/items/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value })
+      });
+      if (!resp.ok) throw new Error('Update failed');
+      const updated = await resp.json();
+      const idx = savedItems.findIndex(i => i.id === id);
+      if (idx !== -1) savedItems[idx] = updated;
+      renderSaved();
+      await loadStats();
+    } catch (e) {
+      toast('Failed to update status.', 'danger');
+    }
+  }
+
+  async function saveNotes(id, notes) {
+    const item = savedItems.find(i => i.id === id);
+    if (item && item.notes === notes) return; // no change
+    try {
+      const resp = await fetch(`/api/items/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes })
+      });
+      if (!resp.ok) throw new Error('Save failed');
+      const updated = await resp.json();
+      const idx = savedItems.findIndex(i => i.id === id);
+      if (idx !== -1) savedItems[idx] = updated;
+    } catch (e) {
+      toast('Failed to save notes.', 'danger');
+    }
+  }
+
+  async function deleteItem(id) {
+    if (!confirm('Remove this item from your database?')) return;
+    try {
+      const resp = await fetch(`/api/items/${id}`, { method: 'DELETE' });
+      if (!resp.ok) throw new Error('Delete failed');
+      savedItems = savedItems.filter(i => i.id !== id);
+      renderSaved();
+      await loadStats();
+      toast('Item removed.', 'secondary');
+    } catch (e) {
+      toast('Failed to delete item.', 'danger');
+    }
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+
+  async function loadStats() {
+    try {
+      const resp = await fetch('/api/stats');
+      const data = await resp.json();
+      document.getElementById('stat-total').textContent = data.total_items;
+      document.getElementById('stat-revenue').textContent = fmt(data.total_revenue);
+      document.getElementById('stat-payment-pending').textContent = `${data.payment_pending_count} (${fmt(data.payment_pending_value)})`;
+      document.getElementById('stat-items-pending').textContent = data.items_pending_count;
+    } catch {}
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+
+  (async () => {
+    await loadSaved();
+    await loadStats();
+    // Default date range: last 30 days
+    setDateRange(30);
+  })();
+</script>
+</body>
+</html>
