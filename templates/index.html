@@ -1,546 +1,573 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>eBay Sales Tracker</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sales Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <style>
     :root {
-      --ebay-blue: #0064d2;
-      --ebay-red: #e53238;
-      --ebay-yellow: #f5af02;
-      --ebay-green: #86b817;
+      --bg:        #e8ebf5;
+      --surface:   #ffffff;
+      --surface-2: #f2f4fb;
+      --border:    #dde0ef;
+      --accent:    #b36700;
+      --accent-s:  #fef4e3;
+      --text-1:    #0f1320;
+      --text-2:    #5d6585;
+      --text-3:    #9ba3bc;
+      --paid:      #16a34a;
+      --paid-bg:   #f0fdf4;
+      --unpaid:    #8b909f;
+      --unpaid-bg: #f3f4f8;
+      --danger:    #dc2626;
+      --nav-bg:    #0f1320;
+      --nav-fg:    #e8eaf5;
+      --sbw:       272px;
+      --navh:      52px;
+      color-scheme: light;
     }
-    body { background: #f4f6f9; font-size: 0.9rem; }
-    .navbar { background: var(--ebay-blue) !important; }
-    .navbar-brand { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.5px; }
-    .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,.1); border-radius: 10px; }
-    .card-header { background: #fff; border-bottom: 2px solid #f0f0f0; font-weight: 600; border-radius: 10px 10px 0 0 !important; }
-    .stat-card { border-radius: 10px; color: #fff; }
-    .stat-card.blue { background: var(--ebay-blue); }
-    .stat-card.green { background: var(--ebay-green); }
-    .stat-card.red { background: var(--ebay-red); }
-    .stat-card.yellow { background: #d4940a; }
-    .stat-card .value { font-size: 1.75rem; font-weight: 700; }
-    .stat-card .label { font-size: 0.78rem; opacity: .85; }
-    .table th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: .5px; color: #666; background: #fafafa; }
-    .table td { vertical-align: middle; }
-    .item-title { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .badge-saved { font-size: 0.7rem; }
-    .status-toggle { cursor: pointer; font-size: 1.2rem; transition: transform .1s; }
-    .status-toggle:hover { transform: scale(1.2); }
-    .notes-input { border: none; background: transparent; width: 100%; font-size: 0.82rem; color: #555; }
-    .notes-input:focus { outline: 1px dashed #ccc; background: #fffef0; border-radius: 4px; }
-    .search-results-header { background: var(--ebay-blue); color: #fff; border-radius: 10px 10px 0 0 !important; }
-    #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; }
-    .spinner-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,.6); z-index: 1000; align-items: center; justify-content: center; }
-    .spinner-overlay.active { display: flex; }
-    .table-hover tbody tr:hover { background: #f0f5ff; }
-    .delete-btn { opacity: 0.4; transition: opacity .15s; }
-    tr:hover .delete-btn { opacity: 1; }
-    #no-results { display: none; }
-    #no-saved { display: none; }
-    .filter-bar { background: #fff; border-radius: 8px; padding: .5rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg:        #0b0d18;
+        --surface:   #141726;
+        --surface-2: #1c1f33;
+        --border:    #26293f;
+        --accent:    #f0a500;
+        --accent-s:  #1a1000;
+        --text-1:    #e4e6f5;
+        --text-2:    #8890b0;
+        --text-3:    #555d7a;
+        --paid:      #22c55e;
+        --paid-bg:   #052e16;
+        --unpaid:    #5e6482;
+        --unpaid-bg: #1c1f33;
+        --danger:    #f87171;
+        --nav-bg:    #0b0d18;
+        --nav-fg:    #e4e6f5;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg:        #0b0d18;
+      --surface:   #141726;
+      --surface-2: #1c1f33;
+      --border:    #26293f;
+      --accent:    #f0a500;
+      --accent-s:  #1a1000;
+      --text-1:    #e4e6f5;
+      --text-2:    #8890b0;
+      --text-3:    #555d7a;
+      --paid:      #22c55e;
+      --paid-bg:   #052e16;
+      --unpaid:    #5e6482;
+      --unpaid-bg: #1c1f33;
+      --danger:    #f87171;
+      --nav-bg:    #0b0d18;
+      --nav-fg:    #e4e6f5;
+      color-scheme: dark;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; background: var(--bg); color: var(--text-1); line-height: 1.5; }
+    button { font-family: inherit; cursor: pointer; }
+    input, button { font-size: 14px; }
+    img { max-width: 100%; }
+
+    /* Nav */
+    nav {
+      position: sticky; top: env(safe-area-inset-top,0px);
+      height: var(--navh); background: var(--nav-bg); color: var(--nav-fg);
+      display: flex; align-items: center; padding-inline: 20px; gap: 12px; z-index: 100;
+    }
+    .brand { font-family: 'Syne', system-ui, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.3px; }
+    .brand-dot { color: var(--accent); }
+    .seller-tag {
+      font-size: 11px; background: rgba(255,255,255,.09); color: rgba(232,234,245,.65);
+      padding: 3px 10px; border-radius: 100px; display: none;
+    }
+    .seller-tag.on { display: inline-block; }
+    .nav-gap { flex: 1; }
+    .theme-btn {
+      background: rgba(255,255,255,.1); border: none; color: var(--nav-fg);
+      width: 32px; height: 32px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center; transition: background .15s;
+    }
+    .theme-btn:hover { background: rgba(255,255,255,.18); }
+
+    /* Shell */
+    .shell {
+      display: flex;
+      height: calc(100% - var(--navh) - env(safe-area-inset-top,0px));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sbw); flex-shrink: 0; overflow-y: auto;
+      background: var(--surface); border-right: 1px solid var(--border);
+      padding: 20px 16px; display: flex; flex-direction: column; gap: 24px;
+    }
+    .sb-title {
+      font-family: 'Syne', system-ui, sans-serif;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .09em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
+    }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 4px; }
+    .field input {
+      width: 100%; padding: 7px 10px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-1); outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    .btn-fetch {
+      width: 100%; padding: 9px; background: var(--accent); color: #fff;
+      border: none; border-radius: 6px; font-weight: 600; font-size: 13px;
+      margin-top: 4px; transition: filter .15s;
+    }
+    .btn-fetch:hover { filter: brightness(1.1); }
+    .btn-fetch:disabled { opacity: .55; cursor: not-allowed; filter: none; }
+    .quick-list { display: flex; flex-direction: column; gap: 5px; }
+    .btn-quick {
+      width: 100%; padding: 7px 10px; text-align: left;
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-2); font-size: 12px; font-weight: 500;
+      transition: background .12s, color .12s, border-color .12s;
+    }
+    .btn-quick:hover { background: var(--accent-s); border-color: var(--accent); color: var(--accent); }
+
+    /* Main */
+    .main { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+    /* Stats strip */
+    .stats { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .stat { flex: 1; padding: 16px 20px; border-right: 1px solid var(--border); }
+    .stat:last-child { border-right: none; }
+    .stat-val {
+      font-family: 'Syne', system-ui, sans-serif; font-size: 26px; font-weight: 700;
+      line-height: 1; font-variant-numeric: tabular-nums; color: var(--text-1);
+    }
+    .stat-val.a { color: var(--accent); }
+    .stat-lbl { font-size: 11px; color: var(--text-3); margin-top: 4px; text-transform: uppercase; letter-spacing: .06em; }
+
+    /* Panel */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .ph { display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+    .ph-title { font-family: 'Syne', system-ui, sans-serif; font-size: 13px; font-weight: 600; }
+    .badge { font-size: 11px; font-weight: 600; background: var(--surface-2); color: var(--text-2); padding: 1px 7px; border-radius: 100px; font-variant-numeric: tabular-nums; }
+    .ph-actions { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+    .btn-sm {
+      padding: 5px 9px; border-radius: 5px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); background: transparent; color: var(--text-2);
+      display: flex; align-items: center; gap: 5px;
+      transition: background .12s, color .12s;
+    }
+    .btn-sm:hover { background: var(--surface-2); color: var(--text-1); }
+    .btn-save {
+      padding: 6px 14px; background: var(--accent); color: #fff;
+      border: none; border-radius: 6px; font-size: 12px; font-weight: 600;
+      transition: filter .15s;
+    }
+    .btn-save:hover { filter: brightness(1.1); }
+    .filter-in {
+      padding: 5px 9px; background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 5px; color: var(--text-1); font-size: 12px; width: 140px; outline: none;
+      transition: border-color .15s;
+    }
+    .filter-in:focus { border-color: var(--accent); }
+
+    /* Table */
+    .tw { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 9px 12px; text-align: left; font-size: 10.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .06em; color: var(--text-3);
+      background: var(--surface-2); white-space: nowrap;
+    }
+    thead th:first-child { padding-left: 16px; }
+    thead th:last-child  { padding-right: 16px; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+    tbody td { padding: 10px 12px; vertical-align: middle; }
+    tbody td:first-child { padding-left: 16px; }
+    tbody td:last-child  { padding-right: 16px; }
+    .tc { max-width: 260px; }
+    .tt { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+    .ts { display: block; font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .pc { font-family: 'Syne', system-ui, sans-serif; font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .dc { font-size: 12px; color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .link-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 5px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-2); text-decoration: none;
+      transition: background .12s, color .12s;
+    }
+    .link-btn:hover { background: var(--surface-2); color: var(--text-1); }
+    .del-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 5px; border: 1px solid transparent;
+      background: transparent; color: var(--text-3); opacity: 0;
+      transition: opacity .12s, background .12s, color .12s;
+    }
+    tbody tr:hover .del-btn { opacity: 1; }
+    .del-btn:hover { background: #fee2e2; color: var(--danger); border-color: #fca5a5; }
+
+    /* Payment pill */
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+      border-radius: 100px; font-size: 11.5px; font-weight: 500; border: none;
+      cursor: pointer; white-space: nowrap; transition: opacity .12s;
+    }
+    .pill:hover { opacity: .8; }
+    .pill.paid   { background: var(--paid-bg);   color: var(--paid); }
+    .pill.unpaid { background: var(--unpaid-bg); color: var(--unpaid); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* Result badge */
+    .rbadge {
+      display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px;
+      border-radius: 100px; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .rbadge.new  { background: var(--accent-s); color: var(--accent); }
+    .rbadge.saved { background: var(--paid-bg); color: var(--paid); }
+
+    /* Notes */
+    .note {
+      min-width: 100px; max-width: 180px; font-size: 12px; color: var(--text-2);
+      outline: none; border-bottom: 1px solid transparent; padding: 2px 2px;
+      display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: border-color .15s;
+    }
+    .note:empty::before { content: attr(data-ph); color: var(--text-3); }
+    .note:focus { border-bottom-color: var(--accent); color: var(--text-1); white-space: normal; overflow: visible; }
+
+    /* Panel footer */
+    .pf {
+      padding: 11px 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface-2);
+    }
+    .sel-count { font-size: 12px; color: var(--text-2); }
+
+    /* Empty */
+    .empty { padding: 48px 20px; text-align: center; color: var(--text-3); }
+    .empty svg { margin-bottom: 10px; opacity: .4; }
+    .empty p { font-size: 13px; }
+
+    input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+    /* Spinner */
+    .spin-ov { position: fixed; inset: 0; background: rgba(0,0,0,.22); display: none; align-items: center; justify-content: center; z-index: 200; }
+    .spin-ov.on { display: flex; }
+    .spin-box { background: var(--surface); border-radius: 12px; padding: 24px 32px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin-msg { font-size: 13px; color: var(--text-2); }
+
+    /* Toast */
+    .toast-area { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom,0px)); right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; pointer-events: none; }
+    .toast { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,.15); animation: tin .2s ease; pointer-events: auto; }
+    @keyframes tin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .toast.success { background: var(--paid-bg);  color: var(--paid);   border: 1px solid color-mix(in srgb,var(--paid) 25%,transparent); }
+    .toast.error   { background: #fee2e2;          color: var(--danger); border: 1px solid #fca5a5; }
+    .toast.info    { background: var(--surface);   color: var(--text-2); border: 1px solid var(--border); }
+    .toast.warning { background: var(--accent-s);  color: var(--accent); border: 1px solid color-mix(in srgb,var(--accent) 30%,transparent); }
+
+    @media (max-width: 640px) {
+      .shell { flex-direction: column; height: auto; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+      .stats { flex-direction: column; }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat:last-child { border-bottom: none; }
+    }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    }
   </style>
 </head>
 <body>
 
-<!-- Spinner -->
-<div class="spinner-overlay" id="spinner">
-  <div class="text-center">
-    <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
-    <div class="mt-2 fw-semibold text-primary" id="spinner-msg">Fetching items...</div>
+<div class="spin-ov" id="spinner">
+  <div class="spin-box">
+    <div class="spinner"></div>
+    <div class="spin-msg" id="spin-msg">Loading…</div>
   </div>
 </div>
+<div class="toast-area" id="toasts"></div>
 
-<!-- Toast -->
-<div id="toast-container"></div>
-
-<!-- Navbar -->
-<nav class="navbar navbar-dark py-2">
-  <div class="container-fluid">
-    <span class="navbar-brand">
-      <i class="bi bi-shop me-2"></i>eBay Sales Tracker
-    </span>
-    <span class="text-white-50 small">Track your sold listings</span>
-  </div>
+<nav>
+  <span class="brand">Sales<span class="brand-dot">.</span>Tracker</span>
+  <span class="seller-tag" id="seller-tag"></span>
+  <div class="nav-gap"></div>
+  <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+  </button>
 </nav>
 
-<div class="container-fluid py-3 px-3 px-md-4">
-
-  <!-- Stats Row -->
-  <div class="row g-3 mb-3" id="stats-row">
-    <div class="col-6 col-md-3">
-      <div class="stat-card blue p-3 rounded-3">
-        <div class="value" id="stat-total">–</div>
-        <div class="label">Total Items Saved</div>
+<div class="shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sb-title">Search</div>
+      <div class="field">
+        <label>Seller username</label>
+        <input type="text" id="seller-input" placeholder="e.g. gadget_palace_99">
+      </div>
+      <div class="field">
+        <label>From</label>
+        <input type="date" id="date-from">
+      </div>
+      <div class="field">
+        <label>To</label>
+        <input type="date" id="date-to">
+      </div>
+      <button class="btn-fetch" id="fetch-btn" onclick="searchItems()">Fetch Sold Items</button>
+    </div>
+    <div>
+      <div class="sb-title">Quick ranges</div>
+      <div class="quick-list">
+        <button class="btn-quick" onclick="setRange(7)">Last 7 days</button>
+        <button class="btn-quick" onclick="setRange(30)">Last 30 days</button>
+        <button class="btn-quick" onclick="setRange(90)">Last 90 days</button>
+        <button class="btn-quick" onclick="setCurrentMonth()">This month</button>
+        <button class="btn-quick" onclick="setLastMonth()">Last month</button>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card green p-3 rounded-3">
-        <div class="value" id="stat-revenue">–</div>
-        <div class="label">Total Revenue</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card red p-3 rounded-3">
-        <div class="value" id="stat-payment-pending">–</div>
-        <div class="label">Payment Pending</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card yellow p-3 rounded-3">
-        <div class="value" id="stat-items-pending">–</div>
-        <div class="label">Shipment Pending</div>
-      </div>
-    </div>
-  </div>
+  </aside>
 
-  <div class="row g-3">
-
-    <!-- Left: Search Panel -->
-    <div class="col-lg-4">
-      <div class="card mb-3">
-        <div class="card-header py-2">
-          <i class="bi bi-search me-2 text-primary"></i>Search Sold Items
-        </div>
-        <div class="card-body">
-          <div class="mb-2">
-            <label class="form-label fw-semibold mb-1">eBay Seller Username</label>
-            <input type="text" id="seller-input" class="form-control form-control-sm" placeholder="e.g. techseller123" />
-          </div>
-          <div class="mb-2">
-            <label class="form-label fw-semibold mb-1">Date From</label>
-            <input type="date" id="date-from" class="form-control form-control-sm" />
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold mb-1">Date To</label>
-            <input type="date" id="date-to" class="form-control form-control-sm" />
-          </div>
-          <button class="btn btn-primary btn-sm w-100" onclick="searchItems()">
-            <i class="bi bi-search me-1"></i>Fetch Sold Items
-          </button>
-          <div class="mt-2 text-muted small text-center">
-            <i class="bi bi-info-circle me-1"></i>Leave dates blank to fetch all
-          </div>
-        </div>
+  <div class="main">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="st-total">—</div>
+        <div class="stat-lbl">Items tracked</div>
       </div>
-
-      <!-- Quick date shortcuts -->
-      <div class="card">
-        <div class="card-header py-2">
-          <i class="bi bi-calendar3 me-2 text-secondary"></i>Quick Date Ranges
-        </div>
-        <div class="card-body py-2">
-          <div class="d-grid gap-1">
-            <button class="btn btn-outline-secondary btn-sm" onclick="setDateRange(7)">Last 7 Days</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="setDateRange(30)">Last 30 Days</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="setDateRange(90)">Last 90 Days</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="setCurrentMonth()">This Month</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="setLastMonth()">Last Month</button>
-          </div>
-        </div>
+      <div class="stat">
+        <div class="stat-val a" id="st-rev">—</div>
+        <div class="stat-lbl">Total revenue</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="st-pend">—</div>
+        <div class="stat-lbl">Payment pending</div>
       </div>
     </div>
 
-    <!-- Right: Results + Saved -->
-    <div class="col-lg-8">
+    <div class="panel" id="results-panel" hidden>
+      <div class="ph">
+        <span class="ph-title">Search Results</span>
+        <span class="badge" id="res-count">0</span>
+        <div class="ph-actions">
+          <button class="btn-sm" onclick="selectAll(true)">All</button>
+          <button class="btn-sm" onclick="selectAll(false)">None</button>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px;"><input type="checkbox" id="all-cb" onchange="selectAll(this.checked)"></th>
+              <th>Item</th>
+              <th>Price</th>
+              <th>Date sold</th>
+              <th>Status</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="res-body"></tbody>
+        </table>
+      </div>
+      <div class="pf">
+        <span class="sel-count"><span id="sel-count">0</span> selected</span>
+        <button class="btn-save" onclick="saveSelected()">Save to database</button>
+      </div>
+    </div>
 
-      <!-- Search Results -->
-      <div class="card mb-3" id="results-card" style="display:none !important;">
-        <div class="card-header search-results-header d-flex align-items-center justify-content-between py-2">
-          <span><i class="bi bi-list-check me-2"></i>Search Results <span id="results-count" class="badge bg-white text-primary ms-1">0</span></span>
-          <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-light" onclick="selectAll(true)">Select All</button>
-            <button class="btn btn-sm btn-outline-light" onclick="selectAll(false)">None</button>
-          </div>
-        </div>
-        <div class="card-body p-0">
-          <div id="no-results" class="text-center py-4 text-muted">
-            <i class="bi bi-inbox fs-2 d-block mb-2"></i>No sold items found for this seller and date range.
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover mb-0" id="results-table">
-              <thead>
-                <tr>
-                  <th class="ps-3" style="width:36px;"><input type="checkbox" id="select-all-cb" onchange="selectAll(this.checked)" /></th>
-                  <th>Item</th>
-                  <th>Price</th>
-                  <th>Date Sold</th>
-                  <th>Link</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="results-body"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card-footer d-flex align-items-center justify-content-between bg-white py-2">
-          <span class="text-muted small"><span id="selected-count">0</span> selected</span>
-          <button class="btn btn-success btn-sm" onclick="saveSelected()">
-            <i class="bi bi-cloud-download me-1"></i>Save Selected to Database
+    <div class="panel">
+      <div class="ph">
+        <span class="ph-title">Saved Items</span>
+        <span class="badge" id="saved-count">0</span>
+        <div class="ph-actions">
+          <input class="filter-in" id="filter-in" type="text" placeholder="Filter…" oninput="renderSaved()">
+          <button class="btn-sm" onclick="loadSaved()" aria-label="Refresh">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/>
+            </svg>
           </button>
         </div>
       </div>
-
-      <!-- Saved Items -->
-      <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between py-2">
-          <span><i class="bi bi-database me-2 text-success"></i>Saved Items <span id="saved-count" class="badge bg-success ms-1">0</span></span>
-          <div class="d-flex gap-2 align-items-center">
-            <input type="text" id="filter-input" class="form-control form-control-sm" style="width:160px;" placeholder="Filter by title..." oninput="filterSaved()" />
-            <button class="btn btn-sm btn-outline-secondary" onclick="loadSaved()" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-          </div>
-        </div>
-        <div class="card-body p-0">
-          <div id="no-saved" class="text-center py-5 text-muted">
-            <i class="bi bi-inbox fs-2 d-block mb-2"></i>No items saved yet. Search and save items to track them.
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover mb-0" id="saved-table">
-              <thead>
-                <tr>
-                  <th class="ps-3">Item</th>
-                  <th>Price</th>
-                  <th>Date Sold</th>
-                  <th class="text-center">
-                    <i class="bi bi-credit-card me-1"></i>Payment
-                  </th>
-                  <th class="text-center">
-                    <i class="bi bi-box-seam me-1"></i>Received
-                  </th>
-                  <th>Notes</th>
-                  <th>Link</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="saved-body"></tbody>
-            </table>
-          </div>
+      <div id="saved-body">
+        <div class="empty">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <p>Search for a seller and save items to start tracking.</p>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 <script>
-  let searchResults = [];
-  let savedItems = [];
+(function(){const t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+function toggleTheme(){const r=document.documentElement;const d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);const n=d?'light':'dark';r.setAttribute('data-theme',n);localStorage.setItem('theme',n);}
 
-  // ── Utilities ─────────────────────────────────────────────────────────────
+let searchResults=[], savedItems=[];
 
-  function showSpinner(msg = 'Loading...') {
-    document.getElementById('spinner-msg').textContent = msg;
-    document.getElementById('spinner').classList.add('active');
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt=(v,c='USD')=>new Intl.NumberFormat('en-US',{style:'currency',currency:c}).format(v);
+const fmtDate=s=>{if(!s)return'—';const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
+
+function spin(show,msg='Loading…'){document.getElementById('spinner').classList.toggle('on',show);document.getElementById('spin-msg').textContent=msg;}
+function toast(msg,type='info'){const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),3500);}
+
+function setRange(d){const to=new Date(),fr=new Date();fr.setDate(fr.getDate()-d);document.getElementById('date-from').value=fr.toISOString().slice(0,10);document.getElementById('date-to').value=to.toISOString().slice(0,10);}
+function setCurrentMonth(){const n=new Date();document.getElementById('date-from').value=new Date(n.getFullYear(),n.getMonth(),1).toISOString().slice(0,10);document.getElementById('date-to').value=n.toISOString().slice(0,10);}
+function setLastMonth(){const n=new Date();document.getElementById('date-from').value=new Date(n.getFullYear(),n.getMonth()-1,1).toISOString().slice(0,10);document.getElementById('date-to').value=new Date(n.getFullYear(),n.getMonth(),0).toISOString().slice(0,10);}
+
+async function searchItems(){
+  const seller=document.getElementById('seller-input').value.trim();
+  const date_from=document.getElementById('date-from').value;
+  const date_to=document.getElementById('date-to').value;
+  if(!seller){toast('Enter a seller username.','warning');return;}
+  spin(true,'Fetching sold listings from eBay…');
+  document.getElementById('fetch-btn').disabled=true;
+  try{
+    const r=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({seller,date_from,date_to})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||'Search failed');
+    searchResults=data.items||[];
+    renderResults();
+    document.getElementById('results-panel').hidden=false;
+    const st=document.getElementById('seller-tag');st.textContent=seller;st.classList.add('on');
+    toast(`Found ${searchResults.length} sold listing${searchResults.length!==1?'s':''}.`,searchResults.length?'success':'info');
+  }catch(e){toast(e.message,'error');}
+  finally{spin(false);document.getElementById('fetch-btn').disabled=false;}
+}
+
+function renderResults(){
+  const tbody=document.getElementById('res-body');
+  document.getElementById('res-count').textContent=searchResults.length;
+  if(!searchResults.length){
+    tbody.innerHTML=`<tr><td colspan="6"><div class="empty"><p>No sold items found for this seller and date range.</p></div></td></tr>`;
+    updateSel();return;
   }
-  function hideSpinner() {
-    document.getElementById('spinner').classList.remove('active');
+  tbody.innerHTML=searchResults.map((it,i)=>`
+    <tr>
+      <td><input type="checkbox" class="rcb" data-i="${i}" onchange="updateSel()" ${it.already_saved?'disabled checked':''}></td>
+      <td class="tc"><span class="tt" title="${esc(it.title)}">${esc(it.title)}</span>${it.condition?`<span class="ts">${esc(it.condition)}</span>`:''}</td>
+      <td class="pc">${fmt(it.sold_price,it.currency)}</td>
+      <td class="dc">${fmtDate(it.sold_date)}</td>
+      <td><span class="rbadge ${it.already_saved?'saved':'new'}">${it.already_saved?'Saved':'New'}</span></td>
+      <td><a href="${esc(it.ebay_link)}" target="_blank" rel="noopener" class="link-btn">${ICON_LINK}</a></td>
+    </tr>`).join('');
+  updateSel();
+}
+
+function updateSel(){document.getElementById('sel-count').textContent=document.querySelectorAll('.rcb:not([disabled]):checked').length;}
+function selectAll(v){document.querySelectorAll('.rcb:not([disabled])').forEach(c=>c.checked=v);const a=document.getElementById('all-cb');if(a)a.checked=v;updateSel();}
+
+async function saveSelected(){
+  const cbs=document.querySelectorAll('.rcb:not([disabled]):checked');
+  if(!cbs.length){toast('Select at least one item.','warning');return;}
+  const items=Array.from(cbs).map(c=>searchResults[+c.dataset.i]);
+  spin(true,'Saving…');
+  try{
+    const r=await fetch('/api/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||'Save failed');
+    toast(`${data.saved} item${data.saved!==1?'s':''} saved.${data.skipped?` (${data.skipped} already existed)`:''}`, 'success');
+    cbs.forEach(c=>{searchResults[+c.dataset.i].already_saved=true;c.disabled=true;});
+    renderResults();
+    await Promise.all([loadSaved(),loadStats()]);
+  }catch(e){toast(e.message,'error');}
+  finally{spin(false);}
+}
+
+async function loadSaved(){
+  try{const r=await fetch('/api/items');const d=await r.json();savedItems=d.items||[];renderSaved();}
+  catch{toast('Failed to load saved items.','error');}
+}
+
+function renderSaved(){
+  const f=document.getElementById('filter-in').value.toLowerCase();
+  const items=f?savedItems.filter(i=>i.title.toLowerCase().includes(f)):savedItems;
+  document.getElementById('saved-count').textContent=savedItems.length;
+  const cont=document.getElementById('saved-body');
+  if(!savedItems.length){
+    cont.innerHTML=`<div class="empty"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><p>Search for a seller and save items to start tracking.</p></div>`;
+    return;
   }
-
-  function toast(msg, type = 'success') {
-    const el = document.createElement('div');
-    el.className = `alert alert-${type} alert-dismissible shadow-sm mb-2 py-2 px-3`;
-    el.innerHTML = `${msg} <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>`;
-    document.getElementById('toast-container').appendChild(el);
-    setTimeout(() => el.remove(), 4000);
-  }
-
-  function fmt(price, currency = 'USD') {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(price);
-  }
-
-  function fmtDate(isoStr) {
-    if (!isoStr) return '–';
-    const d = new Date(isoStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ── Date shortcuts ─────────────────────────────────────────────────────────
-
-  function setDateRange(days) {
-    const to = new Date();
-    const from = new Date();
-    from.setDate(from.getDate() - days);
-    document.getElementById('date-from').value = from.toISOString().split('T')[0];
-    document.getElementById('date-to').value = to.toISOString().split('T')[0];
-  }
-
-  function setCurrentMonth() {
-    const now = new Date();
-    const from = new Date(now.getFullYear(), now.getMonth(), 1);
-    document.getElementById('date-from').value = from.toISOString().split('T')[0];
-    document.getElementById('date-to').value = now.toISOString().split('T')[0];
-  }
-
-  function setLastMonth() {
-    const now = new Date();
-    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const to = new Date(now.getFullYear(), now.getMonth(), 0);
-    document.getElementById('date-from').value = from.toISOString().split('T')[0];
-    document.getElementById('date-to').value = to.toISOString().split('T')[0];
-  }
-
-  // ── Search ─────────────────────────────────────────────────────────────────
-
-  async function searchItems() {
-    const seller = document.getElementById('seller-input').value.trim();
-    const date_from = document.getElementById('date-from').value;
-    const date_to = document.getElementById('date-to').value;
-
-    if (!seller) { toast('Please enter a seller username.', 'warning'); return; }
-
-    showSpinner('Fetching sold items from eBay...');
-    try {
-      const resp = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seller, date_from, date_to })
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Search failed');
-
-      searchResults = data.items || [];
-      renderResults();
-      document.getElementById('results-card').style.setProperty('display', 'block', 'important');
-      toast(`Found ${searchResults.length} sold items.`, searchResults.length ? 'success' : 'info');
-    } catch (e) {
-      toast(`<i class="bi bi-exclamation-triangle me-1"></i>${e.message}`, 'danger');
-    } finally {
-      hideSpinner();
-    }
-  }
-
-  function renderResults() {
-    const tbody = document.getElementById('results-body');
-    document.getElementById('results-count').textContent = searchResults.length;
-    document.getElementById('no-results').style.display = searchResults.length ? 'none' : 'block';
-
-    tbody.innerHTML = searchResults.map((item, i) => `
+  if(!items.length){cont.innerHTML=`<div class="empty"><p>No items match "${esc(f)}".</p></div>`;return;}
+  cont.innerHTML=`<div class="tw"><table>
+    <thead><tr><th>Item</th><th>Price</th><th>Date sold</th><th>Payment</th><th>Notes</th><th>Link</th><th></th></tr></thead>
+    <tbody>${items.map(it=>`
       <tr>
-        <td class="ps-3">
-          <input type="checkbox" class="result-cb" data-idx="${i}" onchange="updateSelectedCount()"
-            ${item.already_saved ? 'disabled checked' : ''} />
-        </td>
-        <td>
-          <div class="item-title" title="${escHtml(item.title)}">${escHtml(item.title)}</div>
-          ${item.condition ? `<small class="text-muted">${escHtml(item.condition)}</small>` : ''}
-        </td>
-        <td class="fw-semibold text-success">${fmt(item.sold_price, item.currency)}</td>
-        <td class="text-nowrap">${fmtDate(item.sold_date)}</td>
-        <td>
-          <a href="${escHtml(item.ebay_link)}" target="_blank" class="btn btn-outline-secondary btn-sm py-0 px-1">
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </td>
-        <td>
-          ${item.already_saved
-            ? '<span class="badge bg-success badge-saved">Saved</span>'
-            : '<span class="badge bg-secondary badge-saved">New</span>'}
-        </td>
-      </tr>
-    `).join('');
+        <td class="tc"><span class="tt" title="${esc(it.title)}">${esc(it.title)}</span><span class="ts">${esc(it.seller||'')}${it.condition?' · '+esc(it.condition):''}</span></td>
+        <td class="pc">${fmt(it.sold_price,it.currency)}</td>
+        <td class="dc">${fmtDate(it.sold_date)}</td>
+        <td><button class="pill ${it.payment_received?'paid':'unpaid'}" onclick="togglePay(${it.id},${!it.payment_received})"><span class="pill-dot"></span>${it.payment_received?'Paid':'Unpaid'}</button></td>
+        <td><span class="note" contenteditable="true" data-ph="Add note…" onblur="saveNote(${it.id},this.textContent.trim())" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(it.notes||'')}</span></td>
+        <td><a href="${esc(it.ebay_link)}" target="_blank" rel="noopener" class="link-btn">${ICON_LINK}</a></td>
+        <td><button class="del-btn" onclick="delItem(${it.id})" aria-label="Delete">${ICON_TRASH}</button></td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+}
 
-    updateSelectedCount();
-  }
+async function togglePay(id,val){
+  try{
+    const r=await fetch(`/api/items/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({payment_received:val})});
+    if(!r.ok)throw new Error('Update failed');
+    const u=await r.json();
+    const i=savedItems.findIndex(x=>x.id===id);if(i!==-1)savedItems[i]=u;
+    renderSaved();await loadStats();
+  }catch(e){toast(e.message,'error');}
+}
 
-  function updateSelectedCount() {
-    const checked = document.querySelectorAll('.result-cb:not([disabled]):checked').length;
-    document.getElementById('selected-count').textContent = checked;
-  }
+const noteT={};
+async function saveNote(id,notes){
+  const it=savedItems.find(x=>x.id===id);if(it&&it.notes===notes)return;
+  clearTimeout(noteT[id]);
+  noteT[id]=setTimeout(async()=>{
+    try{
+      const r=await fetch(`/api/items/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({notes})});
+      if(!r.ok)throw new Error();
+      const u=await r.json();const i=savedItems.findIndex(x=>x.id===id);if(i!==-1)savedItems[i]=u;
+    }catch{toast('Failed to save note.','error');}
+  },400);
+}
 
-  function selectAll(checked) {
-    document.querySelectorAll('.result-cb:not([disabled])').forEach(cb => cb.checked = checked);
-    if (document.getElementById('select-all-cb')) document.getElementById('select-all-cb').checked = checked;
-    updateSelectedCount();
-  }
+async function delItem(id){
+  if(!confirm('Remove this item from your database?'))return;
+  try{
+    const r=await fetch(`/api/items/${id}`,{method:'DELETE'});
+    if(!r.ok)throw new Error('Delete failed');
+    savedItems=savedItems.filter(x=>x.id!==id);renderSaved();await loadStats();toast('Item removed.','info');
+  }catch(e){toast(e.message,'error');}
+}
 
-  async function saveSelected() {
-    const cbs = document.querySelectorAll('.result-cb:not([disabled]):checked');
-    if (!cbs.length) { toast('Select at least one item to save.', 'warning'); return; }
+async function loadStats(){
+  try{
+    const r=await fetch('/api/stats');const d=await r.json();
+    document.getElementById('st-total').textContent=d.total_items;
+    document.getElementById('st-rev').textContent=fmt(d.total_revenue);
+    document.getElementById('st-pend').textContent=d.payment_pending_count?`${d.payment_pending_count} · ${fmt(d.payment_pending_value)}`:'0';
+  }catch{}
+}
 
-    const toSave = Array.from(cbs).map(cb => searchResults[parseInt(cb.dataset.idx)]);
-    showSpinner('Saving items...');
-    try {
-      const resp = await fetch('/api/items', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: toSave })
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Save failed');
+const ICON_LINK=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+const ICON_TRASH=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
 
-      toast(`Saved ${data.saved} item(s). ${data.skipped ? data.skipped + ' already existed.' : ''}`, 'success');
-      // Mark newly saved items
-      cbs.forEach(cb => {
-        const idx = parseInt(cb.dataset.idx);
-        searchResults[idx].already_saved = true;
-        cb.disabled = true;
-        cb.checked = true;
-      });
-      renderResults();
-      await loadSaved();
-      await loadStats();
-    } catch (e) {
-      toast(`<i class="bi bi-exclamation-triangle me-1"></i>${e.message}`, 'danger');
-    } finally {
-      hideSpinner();
-    }
-  }
-
-  // ── Saved Items ────────────────────────────────────────────────────────────
-
-  async function loadSaved() {
-    try {
-      const resp = await fetch('/api/items');
-      const data = await resp.json();
-      savedItems = data.items || [];
-      renderSaved();
-    } catch (e) {
-      toast('Failed to load saved items.', 'danger');
-    }
-  }
-
-  function filterSaved() {
-    renderSaved();
-  }
-
-  function renderSaved() {
-    const filter = document.getElementById('filter-input').value.toLowerCase();
-    const filtered = filter
-      ? savedItems.filter(i => i.title.toLowerCase().includes(filter))
-      : savedItems;
-
-    const tbody = document.getElementById('saved-body');
-    document.getElementById('saved-count').textContent = savedItems.length;
-    document.getElementById('no-saved').style.display = savedItems.length ? 'none' : 'block';
-    document.getElementById('saved-table').style.display = savedItems.length ? '' : 'none';
-
-    tbody.innerHTML = filtered.map(item => `
-      <tr id="row-${item.id}">
-        <td class="ps-3">
-          <div class="item-title" title="${escHtml(item.title)}">${escHtml(item.title)}</div>
-          <small class="text-muted">${escHtml(item.seller || '')}${item.condition ? ' · ' + escHtml(item.condition) : ''}</small>
-        </td>
-        <td class="fw-semibold text-success text-nowrap">${fmt(item.sold_price, item.currency)}</td>
-        <td class="text-nowrap">${fmtDate(item.sold_date)}</td>
-        <td class="text-center">
-          <span class="status-toggle"
-            onclick="toggleStatus(${item.id}, 'payment_received', ${!item.payment_received})"
-            title="${item.payment_received ? 'Payment received – click to mark unpaid' : 'Payment not received – click to mark paid'}">
-            ${item.payment_received
-              ? '<i class="bi bi-check-circle-fill text-success"></i>'
-              : '<i class="bi bi-x-circle-fill text-danger"></i>'}
-          </span>
-        </td>
-        <td class="text-center">
-          <span class="status-toggle"
-            onclick="toggleStatus(${item.id}, 'item_received', ${!item.item_received})"
-            title="${item.item_received ? 'Item received – click to mark pending' : 'Item not received – click to mark received'}">
-            ${item.item_received
-              ? '<i class="bi bi-check-circle-fill text-success"></i>'
-              : '<i class="bi bi-x-circle-fill text-danger"></i>'}
-          </span>
-        </td>
-        <td>
-          <input type="text" class="notes-input" value="${escHtml(item.notes || '')}"
-            placeholder="Add notes..."
-            onblur="saveNotes(${item.id}, this.value)"
-            onkeydown="if(event.key==='Enter'){this.blur();}" />
-        </td>
-        <td>
-          <a href="${escHtml(item.ebay_link)}" target="_blank" class="btn btn-outline-secondary btn-sm py-0 px-1">
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </td>
-        <td>
-          <button class="btn btn-sm btn-outline-danger delete-btn py-0 px-1"
-            onclick="deleteItem(${item.id})" title="Remove from database">
-            <i class="bi bi-trash3"></i>
-          </button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  async function toggleStatus(id, field, value) {
-    try {
-      const resp = await fetch(`/api/items/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: value })
-      });
-      if (!resp.ok) throw new Error('Update failed');
-      const updated = await resp.json();
-      const idx = savedItems.findIndex(i => i.id === id);
-      if (idx !== -1) savedItems[idx] = updated;
-      renderSaved();
-      await loadStats();
-    } catch (e) {
-      toast('Failed to update status.', 'danger');
-    }
-  }
-
-  async function saveNotes(id, notes) {
-    const item = savedItems.find(i => i.id === id);
-    if (item && item.notes === notes) return; // no change
-    try {
-      const resp = await fetch(`/api/items/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes })
-      });
-      if (!resp.ok) throw new Error('Save failed');
-      const updated = await resp.json();
-      const idx = savedItems.findIndex(i => i.id === id);
-      if (idx !== -1) savedItems[idx] = updated;
-    } catch (e) {
-      toast('Failed to save notes.', 'danger');
-    }
-  }
-
-  async function deleteItem(id) {
-    if (!confirm('Remove this item from your database?')) return;
-    try {
-      const resp = await fetch(`/api/items/${id}`, { method: 'DELETE' });
-      if (!resp.ok) throw new Error('Delete failed');
-      savedItems = savedItems.filter(i => i.id !== id);
-      renderSaved();
-      await loadStats();
-      toast('Item removed.', 'secondary');
-    } catch (e) {
-      toast('Failed to delete item.', 'danger');
-    }
-  }
-
-  // ── Stats ──────────────────────────────────────────────────────────────────
-
-  async function loadStats() {
-    try {
-      const resp = await fetch('/api/stats');
-      const data = await resp.json();
-      document.getElementById('stat-total').textContent = data.total_items;
-      document.getElementById('stat-revenue').textContent = fmt(data.total_revenue);
-      document.getElementById('stat-payment-pending').textContent = `${data.payment_pending_count} (${fmt(data.payment_pending_value)})`;
-      document.getElementById('stat-items-pending').textContent = data.items_pending_count;
-    } catch {}
-  }
-
-  // ── Init ───────────────────────────────────────────────────────────────────
-
-  (async () => {
-    await loadSaved();
-    await loadStats();
-    // Default date range: last 30 days
-    setDateRange(30);
-  })();
+setRange(30);
+loadSaved();
+loadStats();
 </script>
 </body>
 </html>

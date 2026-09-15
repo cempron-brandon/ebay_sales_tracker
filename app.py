@@ -32,7 +32,6 @@ class SoldItem(db.Model):
     condition = db.Column(db.String(100), default="")
     listing_type = db.Column(db.String(50), default="")
     payment_received = db.Column(db.Boolean, default=False, nullable=False)
-    item_received = db.Column(db.Boolean, default=False, nullable=False)
     notes = db.Column(db.Text, default="")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -49,7 +48,6 @@ class SoldItem(db.Model):
             "condition": self.condition,
             "listing_type": self.listing_type,
             "payment_received": self.payment_received,
-            "item_received": self.item_received,
             "notes": self.notes,
             "created_at": self.created_at.isoformat(),
         }
@@ -154,8 +152,6 @@ def update_item(item_id):
     data = request.get_json(force=True)
     if "payment_received" in data:
         item.payment_received = bool(data["payment_received"])
-    if "item_received" in data:
-        item.item_received = bool(data["item_received"])
     if "notes" in data:
         item.notes = str(data["notes"])
 
@@ -178,13 +174,11 @@ def stats():
     all_items = db.session.execute(db.select(SoldItem)).scalars().all()
     total_revenue = sum(i.sold_price for i in all_items)
     payment_pending = [i for i in all_items if not i.payment_received]
-    items_pending = [i for i in all_items if not i.item_received]
     return jsonify({
         "total_items": len(all_items),
         "total_revenue": round(total_revenue, 2),
         "payment_pending_count": len(payment_pending),
         "payment_pending_value": round(sum(i.sold_price for i in payment_pending), 2),
-        "items_pending_count": len(items_pending),
     })
 
 
